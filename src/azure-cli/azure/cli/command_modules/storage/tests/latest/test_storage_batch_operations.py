@@ -683,11 +683,11 @@ class StorageBatchOperationScenarios(StorageScenarioMixin, LiveScenarioTest):
         
 
     @ResourceGroupPreparer(location='australiaeast')
-    @StorageAccountPreparer(location='australiaeast', kind='StorageV2', hns=True, allow_shared_key_access=False)
+    @StorageAccountPreparer(location='australiaeast', kind='StorageV2', hns=True)
     @StorageTestFilesPreparer()
     def test_storage_file_batch_upload_scenarios_oauth(self, resource_group, test_dir, storage_account):
         # upload without pattern
-        src_share = self.create_share_oauth(storage_account)
+        src_share = self.create_share(storage_account)
         local_folder = self.create_temp_dir()
         self.oauth_cmd('storage file upload-batch -s "{}" -d {} --max-connections 3', storage_account,
                          test_dir, src_share)
@@ -695,7 +695,7 @@ class StorageBatchOperationScenarios(StorageScenarioMixin, LiveScenarioTest):
         self.assertEqual(41, sum(len(f) for r, d, f in os.walk(local_folder)))
 
         # upload with pattern apple/*
-        src_share = self.create_share_oauth(storage_account)
+        src_share = self.create_share(storage_account)
         local_folder = self.create_temp_dir()
         self.oauth_cmd('storage file upload-batch -s "{}" -d {} --pattern apple/*', storage_account, test_dir,
                          src_share)
@@ -703,7 +703,7 @@ class StorageBatchOperationScenarios(StorageScenarioMixin, LiveScenarioTest):
         self.assertEqual(10, sum(len(f) for r, d, f in os.walk(local_folder)))
 
         # upload with pattern */file_0
-        src_share = self.create_share_oauth(storage_account)
+        src_share = self.create_share(storage_account)
         local_folder = self.create_temp_dir()
         share_url = self.oauth_cmd('storage file url -s {} -p \'\' -otsv', storage_account,
                                      src_share).output.strip()[:-1]
@@ -713,7 +713,7 @@ class StorageBatchOperationScenarios(StorageScenarioMixin, LiveScenarioTest):
         self.assertEqual(4, sum(len(f) for r, d, f in os.walk(local_folder)))
 
         # upload with pattern nonexists/*
-        src_share = self.create_share_oauth(storage_account)
+        src_share = self.create_share(storage_account)
         local_folder = self.create_temp_dir()
         self.storage_cmd('storage file upload-batch -s "{}" -d {} --pattern nonexists/*', storage_account,
                          test_dir, src_share)
@@ -721,7 +721,7 @@ class StorageBatchOperationScenarios(StorageScenarioMixin, LiveScenarioTest):
         self.assertEqual(0, sum(len(f) for r, d, f in os.walk(local_folder)))
 
         # upload while specifying share path
-        src_share = self.create_share_oauth(storage_account)
+        src_share = self.create_share(storage_account)
         local_folder = self.create_temp_dir()
         share_url = self.storage_cmd('storage file url -s {} -p \'\' -otsv', storage_account,
                                      src_share).output.strip()[:-1]
@@ -732,7 +732,7 @@ class StorageBatchOperationScenarios(StorageScenarioMixin, LiveScenarioTest):
         self.assertEqual(4, sum(len(f) for r, d, f in os.walk(local_folder)))
 
         # upload to specifying share path
-        src_share = self.create_share_oauth(storage_account)
+        src_share = self.create_share(storage_account)
         local_folder = self.create_temp_dir()
         sub_dir = 'test_dir/sub_dir'
         self.storage_cmd('storage file upload-batch -s "{}" -d {} --pattern */file_0 --destination-path {} ',
@@ -742,7 +742,7 @@ class StorageBatchOperationScenarios(StorageScenarioMixin, LiveScenarioTest):
         self.assertEqual(4, sum(len(f) for r, d, f in os.walk(local_folder)))
 
         # upload with content settings
-        src_share = self.create_share_oauth(storage_account)
+        src_share = self.create_share(storage_account)
         local_folder = self.create_temp_dir()
         self.storage_cmd('storage file upload-batch -s "{}" -d {} --pattern apple/file_0 '
                          '--content-cache-control no-cache '
@@ -763,7 +763,7 @@ class StorageBatchOperationScenarios(StorageScenarioMixin, LiveScenarioTest):
         # parallel upload with max-connections
         import time
         start_time = time.time()
-        src_share = self.create_share_oauth(storage_account)
+        src_share = self.create_share(storage_account)
         local_folder = self.create_temp_dir()
         self.storage_cmd('storage file upload-batch -s "{}" -d {} --max-connections 3', storage_account,
                          test_dir, src_share)
@@ -771,7 +771,7 @@ class StorageBatchOperationScenarios(StorageScenarioMixin, LiveScenarioTest):
         self.assertEqual(41, sum(len(f) for _, _, f in os.walk(local_folder)))
         multi_thread_time = time.time() - start_time
         start_time = time.time()
-        src_share = self.create_share_oauth(storage_account)
+        src_share = self.create_share(storage_account)
         self.storage_cmd('storage file upload-batch -s "{}" -d {} --max-connections 1', storage_account,
                          test_dir, src_share)
         self.storage_cmd('storage file download-batch -s {} -d "{}"', storage_account, src_share, local_folder)
