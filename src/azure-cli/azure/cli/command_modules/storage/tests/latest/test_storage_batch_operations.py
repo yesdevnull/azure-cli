@@ -629,7 +629,7 @@ class StorageBatchOperationScenarios(StorageScenarioMixin, LiveScenarioTest):
     @ResourceGroupPreparer()
     @StorageAccountPreparer(kind='StorageV2', hns=True, allow_shared_key_access=False)
     @StorageTestFilesPreparer()
-    def test_storage_file_batch_download_scenarios(self, test_dir, storage_account_info):
+    def test_storage_file_batch_download_scenarios_oauth(self, test_dir, storage_account_info):
         src_share = self.create_share(storage_account_info)
         # Prepare files
         snapshot = self.storage_cmd('storage share snapshot -n {} ',
@@ -685,7 +685,7 @@ class StorageBatchOperationScenarios(StorageScenarioMixin, LiveScenarioTest):
     @ResourceGroupPreparer()
     @StorageAccountPreparer(location='EastUS2')
     @StorageTestFilesPreparer()
-    def test_storage_file_batch_upload_scenarios(self, test_dir, storage_account_info):
+    def test_storage_file_batch_upload_scenarios_oauth(self, test_dir, storage_account_info):
         # upload without pattern
         src_share = self.create_share(storage_account_info)
         local_folder = self.create_temp_dir()
