@@ -629,7 +629,7 @@ class StorageBatchOperationScenarios(StorageScenarioMixin, LiveScenarioTest):
     @ResourceGroupPreparer()
     @StorageAccountPreparer(kind='StorageV2', hns=True, allow_shared_key_access=False)
     @StorageTestFilesPreparer()
-    def test_storage_file_batch_download_scenarios_oauth(self, test_dir, storage_account_info):
+    def test_storage_file_batch_download_scenarios_oauth(self, resource_group, test_dir, storage_account_info):
         src_share = self.create_share(storage_account_info)
         # Prepare files
         snapshot = self.storage_cmd('storage share snapshot -n {} ',
@@ -682,67 +682,67 @@ class StorageBatchOperationScenarios(StorageScenarioMixin, LiveScenarioTest):
         self.assertEqual(10, sum(len(f) for r, d, f in os.walk(local_folder)))
         
 
-    @ResourceGroupPreparer()
-    @StorageAccountPreparer(location='EastUS2')
+    @ResourceGroupPreparer(location='australiaeast')
+    @StorageAccountPreparer(location='australiaeast', kind='StorageV2', hns=True, allow_shared_key_access=False)
     @StorageTestFilesPreparer()
-    def test_storage_file_batch_upload_scenarios_oauth(self, test_dir, storage_account_info):
+    def test_storage_file_batch_upload_scenarios_oauth(self, resource_group, test_dir, storage_account):
         # upload without pattern
-        src_share = self.create_share(storage_account_info)
+        src_share = self.create_share(storage_account)
         local_folder = self.create_temp_dir()
-        self.storage_cmd('storage file upload-batch -s "{}" -d {} --max-connections 3', storage_account_info,
+        self.oauth_cmd('storage file upload-batch -s "{}" -d {} --max-connections 3', storage_account,
                          test_dir, src_share)
-        self.storage_cmd('storage file download-batch -s {} -d "{}"', storage_account_info, src_share, local_folder)
+        self.oauth_cmd('storage file download-batch -s {} -d "{}"', storage_account, src_share, local_folder)
         self.assertEqual(41, sum(len(f) for r, d, f in os.walk(local_folder)))
 
         # upload with pattern apple/*
-        src_share = self.create_share(storage_account_info)
+        src_share = self.create_share(storage_account)
         local_folder = self.create_temp_dir()
-        self.storage_cmd('storage file upload-batch -s "{}" -d {} --pattern apple/*', storage_account_info, test_dir,
+        self.oauth_cmd('storage file upload-batch -s "{}" -d {} --pattern apple/*', storage_account, test_dir,
                          src_share)
-        self.storage_cmd('storage file download-batch -s {} -d "{}"', storage_account_info, src_share, local_folder)
+        self.oauth_cmd('storage file download-batch -s {} -d "{}"', storage_account, src_share, local_folder)
         self.assertEqual(10, sum(len(f) for r, d, f in os.walk(local_folder)))
 
         # upload with pattern */file_0
-        src_share = self.create_share(storage_account_info)
+        src_share = self.create_share(storage_account)
         local_folder = self.create_temp_dir()
-        share_url = self.storage_cmd('storage file url -s {} -p \'\' -otsv', storage_account_info,
+        share_url = self.oauth_cmd('storage file url -s {} -p \'\' -otsv', storage_account,
                                      src_share).output.strip()[:-1]
-        self.storage_cmd('storage file upload-batch -s "{}" -d {} --pattern */file_0', storage_account_info, test_dir,
+        self.oauth_cmd('storage file upload-batch -s "{}" -d {} --pattern */file_0', storage_account, test_dir,
                          share_url)
-        self.storage_cmd('storage file download-batch -s {} -d "{}"', storage_account_info, src_share, local_folder)
+        self.oauth_cmd('storage file download-batch -s {} -d "{}"', storage_account, src_share, local_folder)
         self.assertEqual(4, sum(len(f) for r, d, f in os.walk(local_folder)))
 
         # upload with pattern nonexists/*
-        src_share = self.create_share(storage_account_info)
+        src_share = self.create_share(storage_account)
         local_folder = self.create_temp_dir()
-        self.storage_cmd('storage file upload-batch -s "{}" -d {} --pattern nonexists/*', storage_account_info,
+        self.storage_cmd('storage file upload-batch -s "{}" -d {} --pattern nonexists/*', storage_account,
                          test_dir, src_share)
-        self.storage_cmd('storage file download-batch -s {} -d "{}"', storage_account_info, src_share, local_folder)
+        self.storage_cmd('storage file download-batch -s {} -d "{}"', storage_account, src_share, local_folder)
         self.assertEqual(0, sum(len(f) for r, d, f in os.walk(local_folder)))
 
         # upload while specifying share path
-        src_share = self.create_share(storage_account_info)
+        src_share = self.create_share(storage_account)
         local_folder = self.create_temp_dir()
-        share_url = self.storage_cmd('storage file url -s {} -p \'\' -otsv', storage_account_info,
+        share_url = self.storage_cmd('storage file url -s {} -p \'\' -otsv', storage_account,
                                      src_share).output.strip()[:-1]
         self.storage_cmd('storage file upload-batch -s "{}" -d {} --pattern */file_0 --destination-path some_dir',
-                         storage_account_info, test_dir, share_url)
-        self.storage_cmd('storage file download-batch -s {} -d "{}" --pattern some_dir*', storage_account_info,
+                         storage_account, test_dir, share_url)
+        self.storage_cmd('storage file download-batch -s {} -d "{}" --pattern some_dir*', storage_account,
                          src_share, local_folder)
         self.assertEqual(4, sum(len(f) for r, d, f in os.walk(local_folder)))
 
         # upload to specifying share path
-        src_share = self.create_share(storage_account_info)
+        src_share = self.create_share(storage_account)
         local_folder = self.create_temp_dir()
         sub_dir = 'test_dir/sub_dir'
         self.storage_cmd('storage file upload-batch -s "{}" -d {} --pattern */file_0 --destination-path {} ',
-                         storage_account_info, test_dir, src_share, sub_dir)
-        self.storage_cmd('storage file download-batch -s {} -d "{}"', storage_account_info, src_share + "/" + sub_dir,
+                         storage_account, test_dir, src_share, sub_dir)
+        self.storage_cmd('storage file download-batch -s {} -d "{}"', storage_account, src_share + "/" + sub_dir,
                          local_folder)
         self.assertEqual(4, sum(len(f) for r, d, f in os.walk(local_folder)))
 
         # upload with content settings
-        src_share = self.create_share(storage_account_info)
+        src_share = self.create_share(storage_account)
         local_folder = self.create_temp_dir()
         self.storage_cmd('storage file upload-batch -s "{}" -d {} --pattern apple/file_0 '
                          '--content-cache-control no-cache '
@@ -750,8 +750,8 @@ class StorageBatchOperationScenarios(StorageScenarioMixin, LiveScenarioTest):
                          '--content-encoding compress '
                          '--content-language en-US '
                          '--content-type "multipart/form-data;" '
-                         '--metadata key=val', storage_account_info, test_dir, src_share)
-        self.storage_cmd('storage file show -s {} -p "{}" ', storage_account_info, src_share, 'apple/file_0'). \
+                         '--metadata key=val', storage_account, test_dir, src_share)
+        self.storage_cmd('storage file show -s {} -p "{}" ', storage_account, src_share, 'apple/file_0'). \
             assert_with_checks(JMESPathCheck('name', 'file_0'),
                                JMESPathCheck('properties.contentSettings.cacheControl', 'no-cache'),
                                JMESPathCheck('properties.contentSettings.contentDisposition', 'attachment'),
@@ -763,18 +763,18 @@ class StorageBatchOperationScenarios(StorageScenarioMixin, LiveScenarioTest):
         # parallel upload with max-connections
         import time
         start_time = time.time()
-        src_share = self.create_share(storage_account_info)
+        src_share = self.create_share(storage_account)
         local_folder = self.create_temp_dir()
-        self.storage_cmd('storage file upload-batch -s "{}" -d {} --max-connections 3', storage_account_info,
+        self.storage_cmd('storage file upload-batch -s "{}" -d {} --max-connections 3', storage_account,
                          test_dir, src_share)
-        self.storage_cmd('storage file download-batch -s {} -d "{}"', storage_account_info, src_share, local_folder)
+        self.storage_cmd('storage file download-batch -s {} -d "{}"', storage_account, src_share, local_folder)
         self.assertEqual(41, sum(len(f) for _, _, f in os.walk(local_folder)))
         multi_thread_time = time.time() - start_time
         start_time = time.time()
-        src_share = self.create_share(storage_account_info)
-        self.storage_cmd('storage file upload-batch -s "{}" -d {} --max-connections 1', storage_account_info,
+        src_share = self.create_share(storage_account)
+        self.storage_cmd('storage file upload-batch -s "{}" -d {} --max-connections 1', storage_account,
                          test_dir, src_share)
-        self.storage_cmd('storage file download-batch -s {} -d "{}"', storage_account_info, src_share, local_folder)
+        self.storage_cmd('storage file download-batch -s {} -d "{}"', storage_account, src_share, local_folder)
         self.assertEqual(41, sum(len(f) for _, _, f in os.walk(local_folder)))
         single_thread_time = time.time() - start_time
         self.assertGreater(single_thread_time, multi_thread_time)
