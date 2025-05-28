@@ -618,6 +618,7 @@ def load_command_table(self, _):  # pylint: disable=too-many-locals, too-many-st
                             resource_type=ResourceType.DATA_STORAGE_FILESHARE, min_api='2019-02-02') as g:
         from ._format import transform_boolean_for_table
         from ._transformers import (transform_file_share_json_output, transform_share_list_handle)
+        #
         g.storage_custom_command('create', 'create_share',
                                  transform=create_boolean_result_output_transformer('created'),
                                  table_transformer=transform_boolean_for_table)
@@ -722,7 +723,7 @@ def load_command_table(self, _):  # pylint: disable=too-many-locals, too-many-st
         g.storage_custom_command_oauth('download', 'download_file',
                                        exception_handler=file_related_exception_handler,
                                        transform=transform_file_show_result)
-        g.storage_custom_command('download-batch', 'storage_file_download_batch', client_factory=cf_share_client)
+        g.storage_custom_command_oauth('download-batch', 'storage_file_download_batch', client_factory=cf_share_client)
         g.storage_command_oauth('hard-link create', 'create_hardlink')
 
     with self.command_group('storage cors', get_custom_sdk('cors', multi_service_properties_factory)) as g:

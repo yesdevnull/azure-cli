@@ -53,6 +53,11 @@ class StorageScenarioMixin:
         cmd = cmd.format(*args)
         cmd = '{} --account-name {} --account-key {}'.format(cmd, *account_info)
         return self.cmd(cmd)
+    
+    def storage_cmd_oauth(self, cmd, account_info, *args):
+        cmd = cmd.format(*args)
+        cmd = '{} --account-name {} --auth-mode login'.format(cmd, *account_info)
+        return self.cmd(cmd)
 
     def storage_cmd_negative(self, cmd, account_info, *args):
         cmd = cmd.format(*args)
