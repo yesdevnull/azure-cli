@@ -53,11 +53,6 @@ class StorageScenarioMixin:
         cmd = cmd.format(*args)
         cmd = '{} --account-name {} --account-key {}'.format(cmd, *account_info)
         return self.cmd(cmd)
-    
-    def storage_cmd_oauth(self, cmd, account_info, *args):
-        cmd = cmd.format(*args)
-        cmd = '{} --account-name {} --auth-mode login'.format(cmd, *account_info)
-        return self.cmd(cmd)
 
     def storage_cmd_negative(self, cmd, account_info, *args):
         cmd = cmd.format(*args)
@@ -75,11 +70,6 @@ class StorageScenarioMixin:
     def create_share(self, account_info, prefix='share', length=24):
         share_name = self.create_random_name(prefix=prefix, length=length)
         self.storage_cmd('storage share create -n {}', account_info, share_name)
-        return share_name
-
-    def create_share_oauth(self, account_info, prefix='share', length=24):
-        share_name = self.create_random_name(prefix=prefix, length=length)
-        self.oauth_cmd('storage share create -n {} --account-name {}', share_name, account_info)
         return share_name
 
     def create_file_system(self, account_info, prefix='filesystem', length=24):

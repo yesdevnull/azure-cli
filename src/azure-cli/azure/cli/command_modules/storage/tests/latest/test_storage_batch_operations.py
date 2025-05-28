@@ -760,7 +760,7 @@ class StorageBatchOperationScenarios(StorageScenarioMixin, LiveScenarioTest):
                          '--content-type "multipart/form-data;" '
                          '--metadata key=val '
                          '--account-name {}', test_dir, src_share, storage_account)
-        self.file_oauth_cmd('storage file show -s {} -p "{}" ', src_share, 'apple/file_0', storage_account). \
+        self.file_oauth_cmd('storage file show -s {} -p "{}" --account-name {}', src_share, 'apple/file_0', storage_account). \
             assert_with_checks(JMESPathCheck('name', 'file_0'),
                                JMESPathCheck('properties.contentSettings.cacheControl', 'no-cache'),
                                JMESPathCheck('properties.contentSettings.contentDisposition', 'attachment'),
