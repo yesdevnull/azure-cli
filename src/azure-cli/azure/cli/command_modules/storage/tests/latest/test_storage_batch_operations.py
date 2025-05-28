@@ -627,63 +627,63 @@ class StorageBatchOperationScenarios(StorageScenarioMixin, LiveScenarioTest):
             JMESPathCheck('length(@)', 0))
 
     @ResourceGroupPreparer()
-    @StorageAccountPreparer(kind='StorageV2', hns=True, allow_shared_key_access=False)
+    @StorageAccountPreparer(name_prefix='dbar', location='australiaeast')
     @StorageTestFilesPreparer()
-    def test_storage_file_batch_download_scenarios_oauth(self, resource_group, test_dir, storage_account_info):
-        src_share = self.create_share(storage_account_info)
+    def test_storage_file_batch_download_scenarios_oauth(self, resource_group, test_dir, storage_account):
+        account_info = self.get_account_info(resource_group, storage_account)
+        src_share = self.create_share(account_info)
         # Prepare files
         snapshot = self.storage_cmd('storage share snapshot -n {} ',
-                                    storage_account_info, src_share).get_output_in_json()["snapshot"]
-        self.storage_cmd('storage file upload-batch -s "{}" -d {} --max-connections 3', storage_account_info,
-                         test_dir, src_share)
+                                    account_info, src_share).get_output_in_json()["snapshot"]
+        self.file_oauth_cmd('storage file upload-batch -s "{}" -d {} --max-connections 3 --account-name {}',
+                            test_dir, src_share, storage_account)
 
         # download without pattern
         local_folder = self.create_temp_dir()
-        self.storage_cmd('storage file download-batch -s {} -d "{}"', storage_account_info, src_share, local_folder)
+        self.file_oauth_cmd('storage file download-batch -s {} -d "{}" --account-name {}', src_share, local_folder, storage_account)
         self.assertEqual(41, sum(len(f) for r, d, f in os.walk(local_folder)))
 
         # download with pattern apple/*
         local_folder = self.create_temp_dir()
-        share_url = self.storage_cmd('storage file url -s {} -p \'\' -otsv', storage_account_info,
-                                     src_share).output.strip()[:-1]
-        self.storage_cmd('storage file download-batch -s {} -d "{}" --pattern apple/*', storage_account_info, share_url,
-                         local_folder)
+        share_url = self.file_oauth_cmd('storage file url -s {} -p \'\' -otsv --account-name {}',
+                                        src_share, storage_account).output.strip()[:-1]
+        self.file_oauth_cmd('storage file download-batch -s {} -d "{}" --pattern apple/* --account-name {}', 
+                            share_url, local_folder, storage_account)
         self.assertEqual(10, sum(len(f) for r, d, f in os.walk(local_folder)))
 
         # download with pattern */file0
         local_folder = self.create_temp_dir()
-        self.storage_cmd('storage file download-batch -s {} -d "{}" --pattern */file_0', storage_account_info,
-                         src_share, local_folder)
+        self.file_oauth_cmd('storage file download-batch -s {} -d "{}" --pattern */file_0 --account-name {}',
+                            src_share, local_folder, storage_account)
         self.assertEqual(4, sum(len(f) for r, d, f in os.walk(local_folder)))
 
         # download with pattern nonexsits/*
         local_folder = self.create_temp_dir()
-        self.storage_cmd('storage file download-batch -s {} -d "{}" --pattern nonexists/*', storage_account_info,
-                         src_share, local_folder)
+        self.file_oauth_cmd('storage file download-batch -s {} -d "{}" --pattern nonexists/* --account-name {}',
+                            src_share, local_folder, storage_account)
         self.assertEqual(0, sum(len(f) for r, d, f in os.walk(local_folder)))
 
         # download with snapshot
         local_folder = self.create_temp_dir()
-        self.storage_cmd('storage file download-batch -s {} -d "{}" --snapshot {}', storage_account_info,
-                         src_share, local_folder, snapshot)
+        self.file_oauth_cmd('storage file download-batch -s {} -d "{}" --snapshot {} --account-name {}',
+                            src_share, local_folder, snapshot, storage_account)
         self.assertEqual(0, sum(len(f) for r, d, f in os.walk(local_folder)))
 
         snapshot = self.storage_cmd('storage share snapshot -n {} ',
-                                    storage_account_info, src_share).get_output_in_json()["snapshot"]
-        self.storage_cmd('storage file download-batch -s {} -d "{}" --snapshot {}', storage_account_info,
-                         src_share, local_folder, snapshot)
+                                    account_info, src_share).get_output_in_json()["snapshot"]
+        self.file_oauth_cmd('storage file download-batch -s {} -d "{}" --snapshot {} --account-name {}',
+                            src_share, local_folder, snapshot, storage_account)
         self.assertEqual(41, sum(len(f) for r, d, f in os.walk(local_folder)))
 
         local_folder = self.create_temp_dir()
-        share_url = self.storage_cmd('storage file url -s {} -p \'\' -otsv', storage_account_info,
-                                     src_share).output.strip()[:-1]
-        self.storage_cmd('storage file download-batch -s {} -d "{}" --pattern apple/* --snapshot {} ',
-                         storage_account_info, share_url, local_folder, snapshot)
+        share_url = self.file_oauth_cmd('storage file url -s {} -p \'\' -otsv --account-name {}',
+                                        src_share, storage_account).output.strip()[:-1]
+        self.file_oauth_cmd('storage file download-batch -s {} -d "{}" --pattern apple/* --snapshot {} --account-name {} ',
+                            share_url, local_folder, snapshot, storage_account)
         self.assertEqual(10, sum(len(f) for r, d, f in os.walk(local_folder)))
         
 
     @ResourceGroupPreparer(location='australiaeast')
-    # @StorageAccountPreparer(name_prefix='dbar', location='australiaeast', kind='StorageV2', hns=True)
     @StorageAccountPreparer(name_prefix='dbar', location='australiaeast')
     @StorageTestFilesPreparer()
     def test_storage_file_batch_upload_scenarios_oauth(self, resource_group, test_dir, storage_account):
