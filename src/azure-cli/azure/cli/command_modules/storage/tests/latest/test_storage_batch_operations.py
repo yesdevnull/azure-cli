@@ -683,7 +683,8 @@ class StorageBatchOperationScenarios(StorageScenarioMixin, LiveScenarioTest):
         
 
     @ResourceGroupPreparer(location='australiaeast')
-    @StorageAccountPreparer(name_prefix='dbar', location='australiaeast', kind='StorageV2', hns=True)
+    # @StorageAccountPreparer(name_prefix='dbar', location='australiaeast', kind='StorageV2', hns=True)
+    @StorageAccountPreparer(name_prefix='dbar', location='australiaeast')
     @StorageTestFilesPreparer()
     def test_storage_file_batch_upload_scenarios_oauth(self, resource_group, test_dir, storage_account):
         # print storage_account variable
