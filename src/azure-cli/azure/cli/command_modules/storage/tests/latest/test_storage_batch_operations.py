@@ -692,9 +692,9 @@ class StorageBatchOperationScenarios(StorageScenarioMixin, LiveScenarioTest):
         src_share = self.create_share(storage_account_info)
         local_folder = self.create_temp_dir()
         self.file_oauth_cmd('storage file upload-batch -s "{}" -d {} --max-connections 3 --account-name {}',
-                        test_dir, src_share, storage_account_info)
+                        test_dir, src_share, storage_account_info[0])
         self.file_oauth_cmd('storage file download-batch -s {} -d "{}" --account-name {}',
-                        src_share, local_folder, storage_account_info)
+                        src_share, local_folder, storage_account_info[0])
         self.assertEqual(41, sum(len(f) for r, d, f in os.walk(local_folder)))
 
         # upload with pattern apple/*
